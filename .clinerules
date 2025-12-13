@@ -1,0 +1,78 @@
+# Receipt Management Project Rules
+
+## Project Purpose
+This directory manages receipts for a government grant with a requirement that at least 50% of investments must be sourced from Austrian vendors (ATU UID numbers).
+
+## File Naming Convention
+All receipt PDFs must follow this format:
+```
+Category_YYYY-MM-DD_Vendor_Description_Amount.pdf
+```
+
+**Rules:**
+- Category: From folder name (e.g., "Audio-Equipment", "CAD-PC")
+- Date: ISO format (YYYY-MM-DD) from receipt date
+- Vendor: Short vendor name (e.g., "Amazon", "MediaMarkt", "e-tec")
+- Description: Brief item description, use hyphens for spaces (e.g., "USB-Adapter", "PC-Case")
+- Amount: Rounded to whole euros, no currency symbol
+- Use hyphens (-) within description, underscores (_) to separate main components
+
+**Examples:**
+- `Audio-Equipment_2025-11-24_Amazon_NEEWER-Lavalier-Mics_15.pdf`
+- `CAD-PC_2025-12-10_MediaMarkt_WD-Black-SSD-2TB_129.pdf`
+
+## CSV Structure
+File: `receipts_data.csv`
+
+**Columns:**
+- Receipt_Number: Vendor's invoice/receipt number (e.g., "R23127447", "DS-AEU-INV-AT-2025-66679660")
+- Filename: Renamed PDF filename
+- Category: Investment category
+- Date: Purchase date (YYYY-MM-DD)
+- Vendor: Vendor name
+- Item_Description: Individual item description (one row per item)
+- Item_Amount_Exact: Item price in euros with cents (gross/brutto, including VAT)
+- UID_Number: Vendor's UID number
+- Is_ATU: "Yes" for Austrian vendors (ATU prefix), "No" for others
+- Receipt_Total: Total amount of entire receipt (includes all items, shipping, VAT)
+- Is_Fundable: "Yes" if receipt total ≥50€, "No" if <50€
+
+**Important:**
+- Each item on a receipt gets its own row
+- Multiple items from same receipt share the same Receipt_Number, Filename, and Receipt_Total
+- Item amounts must be GROSS (including VAT). If receipt shows net prices, calculate gross using VAT rate
+- Receipt total is always the final "Gesamtbetrag" from the receipt
+
+## Austrian Vendor Identification
+- Austrian vendors have UID numbers starting with "ATU" (e.g., ATU49501105)
+- Luxembourg Amazon has "LU" prefix (not Austrian)
+- Chinese/HK vendors have different country codes (not Austrian)
+- Must track to ensure ≥50% compliance
+
+## Known Austrian Vendors
+- MediaMarkt Linz: ATU49501105
+- e-tec electronic GmbH: ATU73063757
+
+## Folder Organization
+- Only scan category SUBFOLDERS for receipts (e.g., audio_equipment/, CAD-PC/)
+- Ignore files at the root level (those are for originals/documentation)
+- Exclude hidden folders (starting with `.`)
+- Each subfolder name becomes a category
+
+## When Processing New Receipts
+1. Scan only category subfolders for PDFs
+2. Read all PDF content carefully
+3. Extract: receipt number, date, vendor, UID number, ALL individual items with prices, receipt total
+4. For each item, ensure price is GROSS (inkl. USt./VAT). Calculate if only net shown
+5. Determine if UID starts with "ATU" (Austrian)
+6. Check if receipt total ≥50€ (fundable threshold)
+7. Rename file using TOTAL amount (rounded to whole euros) in filename
+8. Add to CSV - one row per item, all items share same receipt number and total
+9. Check for duplicates by receipt number before adding
+10. Update compliance calculation
+
+## Important Notes
+- Never duplicate entries in CSV
+- Always verify UID numbers from receipts
+- Amounts should be rounded to nearest euro
+- Multi-item receipts can be combined or split depending on context
