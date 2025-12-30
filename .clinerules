@@ -1,7 +1,16 @@
-# Receipt Management Project Rules
+# Grant Management System Rules
 
 ## Project Purpose
-This directory manages receipts for a government grant with a requirement that at least 50% of investments must be sourced from Austrian vendors (ATU UID numbers).
+This directory manages two aspects of a government grant:
+1. **Receipt Tracking** - Investment receipts with Austrian vendor compliance requirements
+2. **Monthly Progress Reports** - Time tracking and goal achievement reporting
+
+---
+
+# Receipt Management Rules
+
+## Austrian Vendor Compliance
+**Requirement:** At least 50% of total investments must be sourced from Austrian vendors (UID numbers starting with "ATU")
 
 ## File Naming Convention
 All receipt PDFs must follow this format:
@@ -13,7 +22,7 @@ Category_YYYY-MM-DD_Vendor_Description_Amount.pdf
 - Category: From folder name (e.g., "Audio-Equipment", "CAD-PC")
 - Date: ISO format (YYYY-MM-DD) from receipt date
 - Vendor: Short vendor name (e.g., "Amazon", "MediaMarkt", "e-tec")
-- Description: Brief item description, use hyphens for spaces (e.g., "USB-Adapter", "PC-Case")
+- Description: Brief item description, use hyphens for spaces
 - Amount: Rounded to whole euros, no currency symbol
 - Use hyphens (-) within description, underscores (_) to separate main components
 
@@ -22,10 +31,10 @@ Category_YYYY-MM-DD_Vendor_Description_Amount.pdf
 - `CAD-PC_2025-12-10_MediaMarkt_WD-Black-SSD-2TB_129.pdf`
 
 ## CSV Structure
-File: `receipts_data.csv`
+File: `receipts_source/receipts_data.csv`
 
 **Columns:**
-- Receipt_Number: Vendor's invoice/receipt number (e.g., "R23127447", "DS-AEU-INV-AT-2025-66679660")
+- Receipt_Number: Vendor's invoice/receipt number
 - Filename: Renamed PDF filename
 - Category: Investment category
 - Date: Purchase date (YYYY-MM-DD)
@@ -34,45 +43,198 @@ File: `receipts_data.csv`
 - Item_Amount_Exact: Item price in euros with cents (gross/brutto, including VAT)
 - UID_Number: Vendor's UID number
 - Is_ATU: "Yes" for Austrian vendors (ATU prefix), "No" for others
-- Receipt_Total: Total amount of entire receipt (includes all items, shipping, VAT)
+- Receipt_Total: Total amount of entire receipt
 - Is_Fundable: "Yes" if receipt total ≥50€, "No" if <50€
 
 **Important:**
 - Each item on a receipt gets its own row
 - Multiple items from same receipt share the same Receipt_Number, Filename, and Receipt_Total
-- Item amounts must be GROSS (including VAT). If receipt shows net prices, calculate gross using VAT rate
+- Item amounts must be GROSS (including VAT)
 - Receipt total is always the final "Gesamtbetrag" from the receipt
 
-## Austrian Vendor Identification
-- Austrian vendors have UID numbers starting with "ATU" (e.g., ATU49501105)
-- Luxembourg Amazon has "LU" prefix (not Austrian)
-- Chinese/HK vendors have different country codes (not Austrian)
-- Must track to ensure ≥50% compliance
-
-## Known Austrian Vendors
-- MediaMarkt Linz: ATU49501105
-- e-tec electronic GmbH: ATU73063757
-
 ## Folder Organization
-- Only scan category SUBFOLDERS for receipts (e.g., audio_equipment/, CAD-PC/)
-- Ignore files at the root level (those are for originals/documentation)
-- Exclude hidden folders (starting with `.`)
+- Receipt PDFs stored in: `receipts_original/[category]/`
+- Only scan category SUBFOLDERS for receipts
 - Each subfolder name becomes a category
+- Ignore files at root level
 
-## When Processing New Receipts
+## When Processing Receipts (/update-receipts)
 1. Scan only category subfolders for PDFs
 2. Read all PDF content carefully
-3. Extract: receipt number, date, vendor, UID number, ALL individual items with prices, receipt total
-4. For each item, ensure price is GROSS (inkl. USt./VAT). Calculate if only net shown
+3. Extract: receipt number, date, vendor, UID number, ALL items with prices, receipt total
+4. Ensure prices are GROSS (inkl. USt./VAT)
 5. Determine if UID starts with "ATU" (Austrian)
 6. Check if receipt total ≥50€ (fundable threshold)
-7. Rename file using TOTAL amount (rounded to whole euros) in filename
-8. Add to CSV - one row per item, all items share same receipt number and total
-9. Check for duplicates by receipt number before adding
+7. Rename file using TOTAL amount in filename
+8. Add to CSV - one row per item
+9. Check for duplicates by receipt number
 10. Update compliance calculation
 
-## Important Notes
-- Never duplicate entries in CSV
-- Always verify UID numbers from receipts
-- Amounts should be rounded to nearest euro
-- Multi-item receipts can be combined or split depending on context
+---
+
+# Monthly Progress Report Rules
+
+## Directory Structure
+```
+monthly-reports/
+├── template.xlsx           # Progress report template (all months)
+├── repos.txt              # Git repository paths (one per line)
+└── [month-name]/          # e.g., "december", "january"
+    ├── Clockify*.csv      # Time tracking export(s)
+    └── progress_report_[Month]_2025.xlsx  # Generated output
+```
+
+## Progress Report Template Structure
+
+**Excel Template Columns:**
+- Column A: Goal number (1, 2, 3...)
+- Column B: Goal description/text
+- Column C: Definition of Done
+- Column D: Hypotheses (optional)
+- Column E: Validated yes/no
+- Column F: Measures and activities
+- Column G: Status
+- Columns H-K: Team member hours (1-4)
+
+**Data starts at row 6** (rows 1-5 are headers)
+
+## When Generating Monthly Reports (/monthly-report)
+
+### 1. Setup and Detection
+- Determine month from folder name or parameter
+- Validate folder structure exists
+- Find all `Clockify*.csv` files in month folder
+- Read `repos.txt` for git repository paths
+- Calculate date range from month name (e.g., December → 2025-12-01 to 2025-12-31)
+
+### 2. Git Analysis
+For each repository in `repos.txt`:
+- If local path exists:
+  - Navigate to repo
+  - Checkout `develop` branch
+  - Run `git pull` to get latest
+  - Run `git log --since="YYYY-MM-01" --until="YYYY-MM-31" --patch --no-merges` (or --stat)
+  - Capture commit messages, file changes, and code diffs
+  - Parse for specific features implemented (not just commit messages)
+- If remote/inaccessible: Skip with warning
+- Aggregate all git logs from all repos
+
+### 3. Clockify CSV Parsing
+- Read all Clockify CSV files in month folder
+- Expected columns: Project, Description, Duration (decimal), Start Date
+- Parse date format: DD/MM/YYYY
+- Group tasks by similarity into potential goals
+- Calculate total hours per goal group
+- Extract task descriptions for "Measures & Activities"
+
+### 4. Goal Inference
+**Automatically infer:**
+- Goal titles from task aggregations and patterns
+- Definition of Done from what was actually accomplished
+- Measures & Activities from:
+  - Clockify task descriptions with hours and dates
+  - Git commit messages and features implemented
+  - Combine information from both sources
+
+**Leave empty (ask user):**
+- Hypotheses (usually not inferable from time tracking)
+- Validated yes/no (only if hypotheses exist)
+- Status (ask user to confirm: Fully achieved / Partially achieved / Not achieved)
+
+### 5. Handle Multi-Goal Tasks
+If a single Clockify entry mentions multiple goals:
+- Split the time proportionally or equally
+- Create separate goal entries
+- Example: "work on receipts and UI" → split into two goals
+
+### 6. Handle Ambiguous Tasks
+If task description is vague (e.g., "Admin stuff"):
+- Ask user what to do:
+  - Exclude from report
+  - Assign to specific goal
+  - Create separate administrative goal
+
+### 7. User Interaction
+Ask user for:
+1. **Goal status confirmation** for each inferred goal
+2. **Hypotheses** if any were being tested
+3. **Clarification** on ambiguous or unparseable tasks
+4. **Refinement** of goal descriptions if needed
+
+### 8. Excel Generation
+- Load `../template.xlsx`
+- Find sheet matching capitalized month name
+- Fill data starting at row 6
+- Use proper column mapping (A-K)
+- Remove all sheets except current month
+- Save as `progress_report_[Month]_2025.xlsx` in month folder
+- Preserve all template formatting
+
+### 9. Output Summary
+Show user:
+- Total goals generated
+- Total hours tracked
+- Status breakdown (completed vs ongoing)
+- Output file location
+- Next steps (import to Google Sheets)
+
+## Important Notes for Monthly Reports
+
+### Git Repository Handling
+- Always use `develop` branch
+- Auto-pull latest changes before analyzing
+- Handle multiple repos - aggregate all commit data
+- Skip inaccessible repos with warning
+
+### Time Tracking Parsing
+- Handle multiple Clockify CSV files
+- Parse DD/MM/YYYY date format
+- Use "Duration (decimal)" column for hours
+- Match git commits to time entries by date and description
+
+### Goal Aggregation Rules
+- Minimum 3 goals per month (as per template requirements)
+- Group similar tasks together
+- Split multi-goal time entries appropriately
+- Calculate total hours per goal accurately
+
+### Status Classification
+- **Fully achieved**: All acceptance criteria met, work complete
+- **Partially achieved**: Some progress made, more work needed
+- **Not achieved**: Ongoing work, will continue next month
+
+### Error Handling
+- If no Clockify CSV found: Ask user for path
+- If repos.txt missing: Skip git analysis, use only Clockify
+- If git repo inaccessible: Warn and continue with other repos
+- If month not recognized: Ask user for clarification
+- If template not found: Error and exit
+
+---
+
+# General Rules
+
+## Commands Available
+- `/update-receipts` - Process new receipt PDFs and update CSV database
+- `/monthly-report [month]` - Generate monthly progress report
+
+## Python Environment
+- Virtual environment located at: `venv/`
+- Activate before running Python scripts: `venv\Scripts\activate.bat`
+- Required packages: pandas, matplotlib, seaborn, jupyter, openpyxl
+
+## File Management
+- Never manually edit CSV files - use commands
+- Keep original PDFs and backups
+- Preserve template formatting when generating reports
+- Check for duplicates before adding data
+
+## Data Integrity
+- Validate all extracted data before saving
+- Check for duplicates (receipts by receipt number)
+- Ensure date formats are consistent
+- Verify calculations (totals, percentages)
+
+---
+
+**Last Updated:** 2025-12-26

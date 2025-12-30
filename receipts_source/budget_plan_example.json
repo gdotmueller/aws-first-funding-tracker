@@ -1,0 +1,36 @@
+{
+  "project": {
+    "name": "SoundCount",
+    "funding_rate": 0.90
+  },
+  "personnel": {
+    "team_members": [
+      {
+        "name": "Gernot Müller",
+        "country": "AT",
+        "role": "Project Lead & ML Engineer",
+        "total_amount": 7200,
+        "funded_amount": 6480
+      },
+      {
+        "name": "Roman Schmid",
+        "country": "AT",
+        "role": "Product Development & Strategy",
+        "total_amount": 7200,
+        "funded_amount": 6480
+      }
+    ],
+    "total_personnel_costs": 14400,
+    "total_personnel_funded": 12960,
+    "note": "Austrian residents count towards 50% Austrian vendor compliance rule"
+  },
+  "investment": {
+    "total_investment_costs": 16500,
+    "total_investment_funded": 14850
+  },
+  "compliance": {
+    "austrian_vendor_threshold": 0.50,
+    "personnel_counts_as_austrian": true,
+    "note": "AWS confirmed: Personnel costs for Austrian residents count towards the 50% Austrian vendor rule"
+  }
+}

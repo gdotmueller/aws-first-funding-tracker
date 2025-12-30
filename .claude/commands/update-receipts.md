@@ -2,16 +2,23 @@
 
 Your task is to process new receipt PDFs and update the tracking system.
 
+## Data Files
+
+- **Receipts CSV:** `S:\funding\receipts\receipts_source\receipts_data.csv`
+- **Budget Plan:** `S:\funding\receipts\receipts_source\budget_plan.json`
+- **Analysis Notebook:** `S:\funding\receipts\receipts_source\receipt_analysis.ipynb`
+
+The budget_plan.json contains personnel costs and investment budgets. The Jupyter notebook handles all compliance calculations including personnel costs towards the 50% Austrian vendor rule.
+
 ## Steps to Follow:
 
 1. **Scan for unprocessed PDFs**
-   - Scan ALL subfolders ONLY within the root directory (where receipts_data.csv is located)
-   - Ignore any files/folders at the root level (those are for originals/backups)
+   - Scan ALL subfolders ONLY within the receipts directory
    - Find any PDF files (case-insensitive: .pdf, .PDF) in category subfolders that are NOT already in receipts_data.csv
    - Check by comparing filenames in CSV with actual files in folders
    - The category name comes from the subfolder name (e.g., if PDF is in `audio_equipment/`, category is `Audio-Equipment`)
    - Handle new category subfolders automatically - they don't need to be pre-defined
-   - Exclude hidden folders (starting with `.`) and special files (README.md, .csv, .ipynb, etc.)
+   - Exclude hidden folders (starting with `.`) and special files (README.md, .csv, .ipynb, .json, etc.)
 
 2. **Read each new PDF**
    - Extract the following information:
@@ -45,18 +52,20 @@ Your task is to process new receipt PDFs and update the tracking system.
 
 5. **Report Summary**
    - Show how many new receipts were processed
-   - List the new receipts added
-   - Calculate and display updated compliance metrics:
-     - Total investment
-     - Austrian vendor spending (ATU)
-     - Non-Austrian vendor spending
-     - Austrian vendor percentage
-     - Compliance status (≥50% required)
-     - If non-compliant, show how much more Austrian spending is needed
+   - List the new receipts added with their totals and ATU status
+   - Show basic totals:
+     - Total receipts in CSV
+     - Total spending from receipts
+     - ATU vendor spending
+     - Non-ATU vendor spending
 
-6. **Remind user**
-   - Remind them to run the Jupyter notebook for full analysis and visualizations
+6. **Direct user to notebook for full analysis**
+   - Tell the user: "Run the Jupyter notebook for full compliance analysis including personnel costs:"
    - Command: `jupyter notebook receipt_analysis.ipynb`
+   - The notebook will:
+     - Load budget_plan.json for personnel costs
+     - Calculate Austrian compliance (receipts + personnel)
+     - Generate visualizations and reports
 
 ## Important Rules:
 - NEVER modify or remove existing entries from the CSV
@@ -64,3 +73,13 @@ Your task is to process new receipt PDFs and update the tracking system.
 - Always check for duplicates before adding to CSV
 - Round all amounts to whole euros (no decimals)
 - Verify UID numbers carefully - ATU = Austrian
+- Do NOT calculate compliance yourself - the notebook handles this with personnel costs
+
+## Why the notebook handles compliance:
+
+The 50% Austrian vendor rule includes personnel costs for Austrian residents (confirmed by AWS). The notebook:
+1. Loads `budget_plan.json` for personnel costs (€12,960 at 90% funding)
+2. Adds personnel to Austrian spending
+3. Calculates: Austrian % = (ATU vendors + Personnel) / (Total receipts + Personnel)
+
+This is handled in code for accuracy and consistency.
