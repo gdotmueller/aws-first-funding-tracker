@@ -12,7 +12,7 @@ The command expects the following structure:
 s:\funding\receipts\monthly-reports\
 ├── template.xlsx                    # Progress report template
 ├── repos.txt                        # List of git repository paths (one per line)
-└── [month-name]_2025/                    # e.g., "december", "january"
+└── [month-name]_[YYYY]/                    # e.g., "december_2025", "january_2026"
     ├── Clockify*.csv                # Clockify time tracking export(s)
     └── progress_report_[Month]_2025.xlsx  # Generated output
 ```
@@ -37,7 +37,7 @@ s:\funding\receipts\monthly-reports\
 
 ```bash
 # Navigate to a month folder
-cd s:\funding\receipts\monthly-reports\december
+cd s:\funding\receipts\monthly-reports\december_2025
 
 # Run the command
 /monthly-report
@@ -46,7 +46,7 @@ cd s:\funding\receipts\monthly-reports\december
 Or from anywhere:
 
 ```bash
-/monthly-report december
+/monthly-report december_2025
 ```
 
 ## What You Need to Provide

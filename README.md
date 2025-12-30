@@ -61,7 +61,7 @@ Category_YYYY-MM-DD_Vendor_Description_Amount.pdf
 ## How to Add New Receipts
 
 ### Step 1: Organize PDF Files
-Place new receipt PDFs into the appropriate category subfolder under `receipts_original/`
+Place new receipt PDFs into the appropriate category subfolder under `receipts/`
 
 ### Step 2: Process with Claude Code
 ```bash
@@ -104,19 +104,19 @@ monthly-reports/
 ## How to Generate Monthly Reports
 
 ### Step 1: Prepare Data
-1. Export Clockify detailed time report as CSV to the month folder (e.g., `monthly-reports/december/`)
+1. Export Clockify detailed time report as CSV to the month folder (e.g., `monthly-reports/december_2025/`)
 2. Ensure `repos.txt` contains correct git repository paths
 
 ### Step 2: Generate Report
 Navigate to the month folder and run:
 ```bash
-cd monthly-reports/december
+cd monthly-reports/december_2025
 /monthly-report
 ```
 
 Or from anywhere:
 ```bash
-/monthly-report december
+/monthly-report december_2025
 ```
 
 ### Step 3: Import to Google Sheets
